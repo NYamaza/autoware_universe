@@ -795,9 +795,8 @@ std::optional<PathLanelets> IntersectionModule::generatePathLanelets(
   // entry2ego if exist
   const auto [assigned_lane_start, assigned_lane_end] = assigned_lane_interval;
   if (closest_idx > assigned_lane_start) {
-    path_lanelets.all.push_back(
-      util::generatePathLanelet(
-        path, assigned_lane_start, closest_idx, width, path_lanelet_interval));
+    path_lanelets.all.push_back(util::generatePathLanelet(
+      path, assigned_lane_start, closest_idx, width, path_lanelet_interval));
   }
 
   // ego_or_entry2exit
