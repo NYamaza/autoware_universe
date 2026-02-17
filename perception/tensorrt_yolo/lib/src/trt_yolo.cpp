@@ -281,6 +281,7 @@ void Net::save(const std::string & path) const
   file.write(reinterpret_cast<const char *>(plan_->data()), plan_->size());
 }
 
+/*
 void Net::infer(std::vector<void *> & buffers, const int batch_size)
 {
   if (!context_) {
@@ -290,6 +291,54 @@ void Net::infer(std::vector<void *> & buffers, const int batch_size)
   context_->setBindingDimensions(
     0, nvinfer1::Dims4(batch_size, input_dims.d[1], input_dims.d[2], input_dims.d[3]));
   context_->enqueueV2(buffers.data(), stream_, nullptr);
+  cudaStreamSynchronize(stream_);
+}
+*/
+/*
+void Net::infer(std::vector<void *> & buffers, const int batch_size)
+{
+  if (!context_) {
+    throw std::runtime_error("Fail to create context");
+  }
+
+  // 1. 入力テンソルの名前を取得して形状を設定
+  auto const input_name = engine_->getIOTensorName(0);
+  auto input_dims = engine_->getTensorShape(input_name);
+  context_->setInputShape(
+    input_name, nvinfer1::Dims4(batch_size, input_dims.d[1], input_dims.d[2], input_dims.d[3]));
+
+  // 2. 各テンソルのアドレス（バッファ）をセット
+  int32_t nbIO = engine_->getNbIOTensors();
+  for (int i = 0; i < nbIO; ++i) {
+    context_->setTensorAddress(engine_->getIOTensorName(i), buffers[i]);
+  }
+
+  // 3. enqueueV3 を実行
+  context_->enqueueV3(stream_);
+  cudaStreamSynchronize(stream_);
+}
+*/
+void Net::infer(std::vector<void *> & buffers, const int batch_size)
+{
+  if (!context_) {
+    throw std::runtime_error("Fail to create context");
+  }
+
+  // 1. 入力テンソルの名前を取得
+  auto const input_name = engine_->getIOTensorName(0);
+  auto input_dims = engine_->getTensorShape(input_name);
+  
+  // バッチサイズを動的に設定
+  input_dims.d[0] = batch_size; 
+  context_->setInputShape(input_name, input_dims);
+
+  // 2. 各テンソルのアドレスをセット
+  for (int i = 0; i < engine_->getNbIOTensors(); ++i) {
+    context_->setTensorAddress(engine_->getIOTensorName(i), buffers[i]);
+  }
+
+  // 3. 実行
+  context_->enqueueV3(stream_);
   cudaStreamSynchronize(stream_);
 }
 
@@ -319,15 +368,30 @@ bool Net::detect(const cv::Mat & in_img, float * out_scores, float * out_boxes, 
   return true;
 }
 
+/*
 std::vector<int> Net::getInputDims() const
 {
   auto dims = engine_->getBindingDimensions(0);
   return {dims.d[1], dims.d[2], dims.d[3]};
 }
+*/
+std::vector<int> Net::getInputDims() const
+{
+  auto const name = engine_->getIOTensorName(0);
+  auto dims = engine_->getTensorShape(name);
+  return {static_cast<int>(dims.d[1]), static_cast<int>(dims.d[2]), static_cast<int>(dims.d[3])};
+}
 
+/*
 int Net::getMaxBatchSize() const
 {
   return engine_->getProfileDimensions(0, 0, nvinfer1::OptProfileSelector::kMAX).d[0];
+}
+*/
+int Net::getMaxBatchSize() const
+{
+  auto const name = engine_->getIOTensorName(0);
+  return engine_->getProfileShape(name, 0, nvinfer1::OptProfileSelector::kMAX).d[0];
 }
 
 int Net::getInputSize() const
@@ -338,9 +402,16 @@ int Net::getInputSize() const
   return input_size;
 }
 
+/*
 int Net::getMaxDetections() const
 {
   return engine_->getBindingDimensions(1).d[1];
+}
+*/
+int Net::getMaxDetections() const
+{
+  auto const name = engine_->getIOTensorName(1);
+  return engine_->getTensorShape(name).d[1];
 }
 
 }  // namespace yolo

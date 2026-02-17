@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.17)
 project(tensorrt_yolox)
 
+add_compile_options("-Wno-error=deprecated-declarations")
+add_compile_options("-Wno-deprecated-declarations")
+
 find_package(tensorrt_common)
 if(NOT ${tensorrt_common_FOUND})
   message(WARNING "The tensorrt_common package is not found. Please check its dependencies.")

@@ -22,7 +22,8 @@
   <exec_depend>ground_segmentation</exec_depend>
   <exec_depend>image_projection_based_fusion</exec_depend>
   <exec_depend>image_transport_decompressor</exec_depend>
-  <exec_depend>lidar_apollo_instance_segmentation</exec_depend>
+<!--  <exec_depend>lidar_apollo_instance_segmentation</exec_depend>
+-->
   <exec_depend>map_based_prediction</exec_depend>
   <exec_depend>multi_object_tracker</exec_depend>
   <exec_depend>object_merger</exec_depend>

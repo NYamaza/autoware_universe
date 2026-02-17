@@ -78,7 +78,8 @@ public:
   inline Shape getInputShape() const
   {
     auto dims = getTensorShape("input");
-    return {dims.d[1], dims.d[2], dims.d[3]};
+//    return {dims.d[1], dims.d[2], dims.d[3]};
+    return {static_cast<int>(dims.d[1]), static_cast<int>(dims.d[2]), static_cast<int>(dims.d[3])};
   }
 
   // Get output dimensions by name
@@ -91,7 +92,8 @@ public:
   // Get max allowed batch size
   inline int getMaxBatchSize() const
   {
-    return engine_->getProfileDimensions(0, 0, nvinfer1::OptProfileSelector::kMAX).d[0];
+//    return engine_->getProfileDimensions(0, 0, nvinfer1::OptProfileSelector::kMAX).d[0];
+    return engine_->getProfileShape(engine_->getIOTensorName(0), 0, nvinfer1::OptProfileSelector::kMAX).d[0];
   }
 
   // Get max number of detections

@@ -21,6 +21,10 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
   src/preprocess.cu
 )
 
+# 非推奨警告を無視するフラグを追加
+target_compile_options(${PROJECT_NAME} PRIVATE "-Wno-error=deprecated-declarations")
+target_compile_options(${PROJECT_NAME} PRIVATE "-Wno-deprecated-declarations")
+
 ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   OpenCV

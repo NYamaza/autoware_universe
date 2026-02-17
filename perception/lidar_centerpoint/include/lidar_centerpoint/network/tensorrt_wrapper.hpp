@@ -39,6 +39,23 @@ public:
 
   tensorrt_common::TrtUniquePtr<nvinfer1::IExecutionContext> context_{nullptr};
 
+bool enqueueV3(void ** bindings, cudaStream_t stream)
+{
+  // ここで内部のプライベートな engine_ や context_ を使って処理を完結させる
+  int32_t nbIO = engine_->getNbIOTensors();
+  for (int i = 0; i < nbIO; ++i) {
+    context_->setTensorAddress(engine_->getIOTensorName(i), bindings[i]);
+  }
+  return context_->enqueueV3(stream);
+}
+
+// 名前を取得する関数も作っておく
+const char* getIOTensorName(int32_t index) const {
+  return engine_->getIOTensorName(index);
+}
+
+
+
 protected:
   virtual bool setProfile(
     nvinfer1::IBuilder & builder, nvinfer1::INetworkDefinition & network,
@@ -64,5 +81,7 @@ private:
 };
 
 }  // namespace centerpoint
+
+
 
 #endif  // LIDAR_CENTERPOINT__NETWORK__TENSORRT_WRAPPER_HPP_

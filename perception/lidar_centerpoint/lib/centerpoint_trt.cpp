@@ -38,8 +38,15 @@ CenterPointTRT::CenterPointTRT(
   encoder_trt_ptr_ = std::make_unique<VoxelEncoderTRT>(config_);
   encoder_trt_ptr_->init(
     encoder_param.onnx_path(), encoder_param.engine_path(), encoder_param.trt_precision());
+/*
   encoder_trt_ptr_->context_->setBindingDimensions(
     0,
+    nvinfer1::Dims3(
+      config_.max_voxel_size_, config_.max_point_in_voxel_size_, config_.encoder_in_feature_size_));
+*/
+  auto name = encoder_trt_ptr_->getIOTensorName(0);
+  encoder_trt_ptr_->context_->setInputShape(
+    name,
     nvinfer1::Dims3(
       config_.max_voxel_size_, config_.max_point_in_voxel_size_, config_.encoder_in_feature_size_));
 
@@ -49,8 +56,16 @@ CenterPointTRT::CenterPointTRT(
     config_.head_out_dim_size_, config_.head_out_rot_size_,    config_.head_out_vel_size_};
   head_trt_ptr_ = std::make_unique<HeadTRT>(out_channel_sizes, config_);
   head_trt_ptr_->init(head_param.onnx_path(), head_param.engine_path(), head_param.trt_precision());
+/*
   head_trt_ptr_->context_->setBindingDimensions(
     0, nvinfer1::Dims4(
+         config_.batch_size_, config_.encoder_out_feature_size_, config_.grid_size_y_,
+         config_.grid_size_x_));
+*/
+//  name = encoder_trt_ptr_->engine_->getIOTensorName(0);
+  name = encoder_trt_ptr_->getIOTensorName(0);
+  head_trt_ptr_->context_->setInputShape(
+    name, nvinfer1::Dims4(
          config_.batch_size_, config_.encoder_out_feature_size_, config_.grid_size_y_,
          config_.grid_size_x_));
 
@@ -176,7 +191,9 @@ void CenterPointTRT::inference()
 
   // pillar encoder network
   std::vector<void *> encoder_buffers{encoder_in_features_d_.get(), pillar_features_d_.get()};
-  encoder_trt_ptr_->context_->enqueueV2(encoder_buffers.data(), stream_, nullptr);
+//  encoder_trt_ptr_->context_->enqueueV2(encoder_buffers.data(), stream_, nullptr);
+/*  encoder_trt_ptr_->context_->enqueueV3(encoder_buffers.data(), stream_); */
+  encoder_trt_ptr_->enqueueV3(encoder_buffers.data(), stream_);
 
   // scatter
   CHECK_CUDA_ERROR(scatterFeatures_launch(
@@ -189,7 +206,9 @@ void CenterPointTRT::inference()
                                       head_out_offset_d_.get(),  head_out_z_d_.get(),
                                       head_out_dim_d_.get(),     head_out_rot_d_.get(),
                                       head_out_vel_d_.get()};
-  head_trt_ptr_->context_->enqueueV2(head_buffers.data(), stream_, nullptr);
+//  head_trt_ptr_->context_->enqueueV2(head_buffers.data(), stream_, nullptr);
+/*  head_trt_ptr_->context_->enqueueV3(head_buffers.data(), stream_);*/
+  head_trt_ptr_->enqueueV3(head_buffers.data(), stream_);
 }
 
 void CenterPointTRT::postProcess(std::vector<Box3D> & det_boxes3d)

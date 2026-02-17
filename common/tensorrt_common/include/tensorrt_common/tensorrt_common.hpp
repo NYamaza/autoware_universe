@@ -112,7 +112,8 @@ struct InferDeleter  // NOLINT
 #if TENSORRT_VERSION_MAJOR >= 8
       delete obj;
 #else
-      obj->destroy();
+//      obj->destroy();
+	delete obj; // ← TensorRT 10では delete を使う
 #endif
     }
   }
@@ -186,6 +187,7 @@ public:
   int32_t getNbBindings();
   bool setBindingDimensions(const int32_t index, const nvinfer1::Dims & dimensions) const;
   bool enqueueV2(void ** bindings, cudaStream_t stream, cudaEvent_t * input_consumed);
+  bool enqueueV3(void ** bindings, cudaStream_t stream);
 
   /**
    * @brief output per-layer information

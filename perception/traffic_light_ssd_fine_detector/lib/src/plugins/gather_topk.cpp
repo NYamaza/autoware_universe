@@ -156,8 +156,11 @@ int GatherTopk::enqueue(
   const nvinfer1::PluginTensorDesc * inputDesc, const nvinfer1::PluginTensorDesc *,
   const void * const * inputs, void * const * outputs, void *, cudaStream_t stream) noexcept
 {
-  const int * dims = &(inputDesc[0].dims.d[0]);
-  const int * dims_indices = &(inputDesc[1].dims.d[0]);
+//  const int * dims = &(inputDesc[0].dims.d[0]);
+//  const int * dims_indices = &(inputDesc[1].dims.d[0]);
+  const int64_t * dims = &(inputDesc[0].dims.d[0]);
+  const int64_t * dims_indices = &(inputDesc[1].dims.d[0]);
+
   int nbDims = inputDesc[0].dims.nbDims;
   int nbDims_index = inputDesc[1].dims.nbDims;
 

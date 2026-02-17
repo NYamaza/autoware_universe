@@ -19,6 +19,8 @@
 
 #include "NvInferRuntimeCommon.h"
 
+#include <NvInfer.h>
+
 #include <atomic>
 #include <cassert>
 #include <ctime>

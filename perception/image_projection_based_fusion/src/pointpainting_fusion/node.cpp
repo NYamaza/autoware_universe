@@ -12,6 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// --- ここから置き換え ---
+#include <cmath>
+#include <cstdlib>
+
+// CUDAの内部ヘッダーが ::isnan などを探しに来るため、
+// 標準ライブラリの定義をグローバル名前空間に明示的に配置する
+using std::isfinite;
+using std::isinf;
+using std::isnan;
+using std::signbit;
+using std::fpclassify;
+using std::isgreater;
+using std::isgreaterequal;
+using std::isless;
+using std::islessequal;
+using std::islessgreater;
+using std::isnormal;
+using std::isunordered;
+
+// 標準ライブラリの深い階層での競合（absの曖昧さなど）を未然に防ぐおまじない
+#define _TR1_EXP_INTEGRAL_TCC 1
+#define __CORRECT_ISO_CPP_MATH_H_PROTO
+
+#include <Eigen/Core>
+
+
 #include "image_projection_based_fusion/pointpainting_fusion/node.hpp"
 
 #include "autoware_point_types/types.hpp"

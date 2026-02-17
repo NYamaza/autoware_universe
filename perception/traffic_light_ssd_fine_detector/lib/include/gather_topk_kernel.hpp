@@ -22,9 +22,16 @@
 namespace ssd
 {
 template <typename scalar_t>
+/*
 void gather_topk_impl(
   const scalar_t * input, const int * indices, const int * dims, int nbDims,
   const int * indices_dims, int indices_nbDims, scalar_t * output, cudaStream_t stream);
+*/
+void gather_topk_impl(
+  const scalar_t * input, const int * indices, 
+  const int64_t * dims, int nbDims,  // ここを int64_t に変更
+  const int64_t * dims_indices, int nbDims_indices,
+  scalar_t * output, cudaStream_t stream);
 }  // namespace ssd
 
 #endif  // GATHER_TOPK_KERNEL_HPP_

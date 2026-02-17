@@ -174,14 +174,39 @@ void Net::save(const std::string & path)
 
 void Net::infer(std::vector<void *> & buffers, const int batch_size)
 {
+#if 0
   if (!context_) {
     throw std::runtime_error("Fail to create context");
   }
   auto input_dims = getTensorShape("input");
-  context_->setBindingDimensions(
+/*  context_->setBindingDimensions(
     0, nvinfer1::Dims4(batch_size, input_dims.d[1], input_dims.d[2], input_dims.d[3]));
-  context_->enqueueV2(buffers.data(), stream_, nullptr);
+*/
+  context_->setInputShape(engine_->getIOTensorName(0), dims);
+//  context_->enqueueV2(buffers.data(), stream_, nullptr);
+  for (int i = 0; i < engine_->getNbIOTensors(); ++i) {
+    const char* name = engine_->getIOTensorName(i);
+    context_->setTensorAddress(name, buffers[i]);
+  }
+  context_->enqueueV3(stream_);
+
   cudaStreamSynchronize(stream_);
+#endif
+// 1. まず現在の入力形状(dims)を取得し、バッチサイズを上書きする
+  auto dims = context_->getTensorShape(engine_->getIOTensorName(0));
+  dims.d[0] = batch_size; // ここで batch_size を使うことで未使用警告も消える
+
+  // 2. 入力形状を設定
+  context_->setInputShape(engine_->getIOTensorName(0), dims);
+
+  // 3. テンソルのアドレスを設定（先ほどの手順通り）
+  for (int i = 0; i < engine_->getNbIOTensors(); ++i) {
+      const char* name = engine_->getIOTensorName(i);
+      context_->setTensorAddress(name, buffers[i]);
+  }
+
+  // 4. 実行
+  context_->enqueueV3(stream_);
 }
 
 }  // namespace ssd
